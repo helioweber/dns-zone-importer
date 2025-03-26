@@ -50,16 +50,34 @@ const ApiConfig: React.FC<ApiConfigProps> = ({ records, onSubmitSuccess }) => {
       setError(null);
       setIsSubmitting(true);
       
+      // Convertendo registros DnsRecord do parser para o formato esperado pela API
+      const apiRecords = records.map(record => {
+        return {
+          record_type: record.type,
+          entry: record.name,
+          answers_list: [record.value],
+          ttl: record.ttl || 3600,
+          policy: "simple",
+          weight: 255,
+          description: ""
+        };
+      });
+      
       // Primeiro, criar a zona de DNS
       const zoneResponse = await createDnsZone(token, {
         name: zoneName,
         domain: domain,
-        is_active: true
+        active: true,
+        soa_ttl: 3600,
+        refresh: 43200,
+        retry: 7200,
+        expiry: 1209600,
+        nx_ttl: 3600
       });
       
       // Se a criação da zona for bem-sucedida, criar os registros
       if (zoneResponse.id) {
-        await createDnsRecords(token, zoneResponse.id, records);
+        await createDnsRecords(token, zoneResponse.id, apiRecords);
         
         toast({
           title: "Importação concluída com sucesso",

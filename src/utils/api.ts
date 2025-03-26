@@ -3,7 +3,23 @@
 interface CreateZonePayload {
   name: string;
   domain: string;
-  is_active: boolean;
+  active: boolean;
+  soa_ttl?: number; 
+  refresh?: number;
+  retry?: number;
+  expiry?: number;
+  nx_ttl?: number;
+}
+
+// Interface para registro DNS
+interface DnsRecord {
+  record_type: string;
+  entry: string;
+  answers_list: string[];
+  ttl: number;
+  policy?: string;
+  weight?: number;
+  description?: string;
 }
 
 // Interface para resposta da API
@@ -15,7 +31,7 @@ interface ApiResponse {
 }
 
 // Base URL da API
-const API_BASE_URL = 'https://api.azionapi.net';
+const API_BASE_URL = 'https://api.azion.com/v4';
 
 // Função para criar uma zona DNS
 export async function createDnsZone(
@@ -25,11 +41,11 @@ export async function createDnsZone(
   try {
     console.log('[VERBOSE] Iniciando criação de zona DNS');
     console.log('[VERBOSE] Payload:', JSON.stringify(payload, null, 2));
-    console.log('[VERBOSE] URL:', `${API_BASE_URL}/intelligent_dns`);
+    console.log('[VERBOSE] URL:', `${API_BASE_URL}/dns/zones`);
     
     const headers = {
-      'Authorization': `Token ${token}`,
-      'Accept': 'application/json; version=3',
+      'Authorization': token,
+      'Accept': 'application/json',
       'Content-Type': 'application/json'
     };
     
@@ -37,7 +53,7 @@ export async function createDnsZone(
     console.log('[VERBOSE] Token (parcial):', token.substring(0, 5) + '...' + token.substring(token.length - 5));
     console.log('[VERBOSE] Método HTTP: POST');
     
-    const response = await fetch(`${API_BASE_URL}/intelligent_dns`, {
+    const response = await fetch(`${API_BASE_URL}/dns/zones`, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
@@ -102,7 +118,7 @@ export async function createDnsZone(
 export async function createDnsRecords(
   token: string,
   zoneId: number,
-  records: any[]
+  records: DnsRecord[]
 ): Promise<ApiResponse> {
   try {
     console.log(`[VERBOSE] Iniciando criação de ${records.length} registros DNS para zona ID ${zoneId}`);
@@ -111,18 +127,18 @@ export async function createDnsRecords(
     const results = await Promise.all(
       records.map(async (record, index) => {
         console.log(`[VERBOSE] Processando registro #${index + 1}:`, JSON.stringify(record, null, 2));
-        console.log(`[VERBOSE] URL para registro #${index + 1}:`, `${API_BASE_URL}/intelligent_dns/${zoneId}/records`);
+        console.log(`[VERBOSE] URL para registro #${index + 1}:`, `${API_BASE_URL}/dns/zones/${zoneId}/records`);
         console.log('[VERBOSE] Método HTTP: POST');
         
         const headers = {
-          'Authorization': `Token ${token}`,
-          'Accept': 'application/json; version=3',
+          'Authorization': token,
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         };
         
         console.log(`[VERBOSE] Headers para registro #${index + 1}:`, JSON.stringify(headers, null, 2));
         
-        const response = await fetch(`${API_BASE_URL}/intelligent_dns/${zoneId}/records`, {
+        const response = await fetch(`${API_BASE_URL}/dns/zones/${zoneId}/records`, {
           method: 'POST',
           headers,
           body: JSON.stringify(record),
