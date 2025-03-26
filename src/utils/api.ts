@@ -30,17 +30,19 @@ export async function createDnsZone(
     const headers = {
       'Authorization': `Token ${token}`,
       'Accept': 'application/json; version=3',
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
+      'Content-Type': 'application/json'
     };
     
     console.log('[VERBOSE] Headers:', JSON.stringify(headers, null, 2));
     console.log('[VERBOSE] Token (parcial):', token.substring(0, 5) + '...' + token.substring(token.length - 5));
+    console.log('[VERBOSE] Método HTTP: POST');
     
     const response = await fetch(`${API_BASE_URL}/intelligent_dns`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      mode: 'cors',
+      credentials: 'omit'
     });
 
     console.log('[VERBOSE] Resposta status:', response.status);
@@ -87,6 +89,7 @@ export async function createDnsZone(
       console.error('[VERBOSE] Tipo de erro:', 'TypeError');
       if (error.message.includes('Failed to fetch')) {
         console.error('[VERBOSE] Detalhe do erro: Failed to fetch - possível problema de CORS ou conexão');
+        console.error('[VERBOSE] Nota: O navegador pode ter enviado uma requisição OPTIONS (preflight) em vez de POST. Verificar no DevTools.');
         throw new Error('Falha na conexão com a API. Verifique sua conexão com a internet ou se há problemas de CORS.');
       }
     }
@@ -109,12 +112,12 @@ export async function createDnsRecords(
       records.map(async (record, index) => {
         console.log(`[VERBOSE] Processando registro #${index + 1}:`, JSON.stringify(record, null, 2));
         console.log(`[VERBOSE] URL para registro #${index + 1}:`, `${API_BASE_URL}/intelligent_dns/${zoneId}/records`);
+        console.log('[VERBOSE] Método HTTP: POST');
         
         const headers = {
           'Authorization': `Token ${token}`,
           'Accept': 'application/json; version=3',
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Content-Type': 'application/json'
         };
         
         console.log(`[VERBOSE] Headers para registro #${index + 1}:`, JSON.stringify(headers, null, 2));
@@ -122,7 +125,9 @@ export async function createDnsRecords(
         const response = await fetch(`${API_BASE_URL}/intelligent_dns/${zoneId}/records`, {
           method: 'POST',
           headers,
-          body: JSON.stringify(record)
+          body: JSON.stringify(record),
+          mode: 'cors',
+          credentials: 'omit'
         });
 
         console.log(`[VERBOSE] Resposta para registro #${index + 1} status:`, response.status);
@@ -176,6 +181,7 @@ export async function createDnsRecords(
       console.error('[VERBOSE] Tipo de erro:', 'TypeError');
       if (error.message.includes('Failed to fetch')) {
         console.error('[VERBOSE] Detalhe do erro: Failed to fetch - possível problema de CORS ou conexão');
+        console.error('[VERBOSE] Nota: O navegador pode ter enviado uma requisição OPTIONS (preflight) em vez de POST. Verificar no DevTools.');
         throw new Error('Falha na conexão com a API. Verifique sua conexão com a internet ou se há problemas de CORS.');
       }
     }
